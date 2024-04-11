@@ -15,6 +15,142 @@
 
 <h3>Login</h3>
 
+@if (isLogin)
+{
+    <LoadingComponent />
+}
+else
+{
+    <EditForm Model="userInfoDTO" OnValidSubmit="LoguearUsuario">
+        <DataAnnotationsValidator />
+
+        <div class="fade-in">
+            <div class="row d-flex justify-content-center">
+                <div class="col-md-6 my-3 px-5">
+                    <h3>JBSuite</h3>
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center">
+
+
+                @* Login Card *@
+                <div class="col-md-4 order-md-2 p-5 element">
+
+                    <div class="forms-inputs mb-3">
+                        <ValidationMessage For="@(()=> userInfoDTO.UserName)" />
+                        <InputText class="form-control" @bind-Value="userInfoDTO.UserName" placeholder="Usuario" />
+                    </div>
+
+                    <div>
+                        <ValidationMessage For="@(()=> userInfoDTO.Password)" />
+                        <div class="forms-inputs mb-3 d-flex align-items-center">
+                            <InputText type="@GetPasswordInputType()" class="form-control flex-grow-1 w-100" @bind-Value="userInfoDTO.Password" placeholder="Contraseña" /> &nbsp;
+                            <button type="button" class="btn btn-light btn-sm" @onclick="TogglePasswordVisibility">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+
+                    </div>
+               
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-outline-primary w-100">Login</button>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary w-100" @onclick="ForgotPassword">Olvidé mi Contraseña</button>
+                    </div>
+
+           
+              
+
+                </div>
+
+                @* svg *@
+                <div class="col-md-6 col-lg-4 order-md-1">
+                    <img src="images/login.svg" alt="Login Image" />
+                </div>
+            </div>
+
+        </div>
+    </EditForm>
+}
+
 @code {
 
+
+    private bool showPassword = false;
+    private bool isLogin;
+
+
+    //TODO
+    /*
+       * Elimianr los valores por defecto
+       * private UserInfoDTO userInfoDTO = new UserInfoDTO() { Email = "a@a.com", Password = "", UserName = "", BD = "" };
+       */
+
+    private UserInfoDTO userInfoDTO = new UserInfoDTO() { Email = "a@a.com", Password = "admin", UserName = "admin", BD = "" };
+
+
+ 
+    private async Task LoguearUsuario()
+    {
+        try
+        {
+
+            if (userInfoDTO.BD == "")
+            {
+                await swal.FireAsync("Error", "Por favor seleccione la empresa.", SweetAlertIcon.Error);
+                return;
+            }
+
+            isLogin = true;
+            var respuestaHTTP = await repositorio.Post<UserInfoDTO, UserTokenDTO>("api/auth/login", userInfoDTO);
+            isLogin = false;
+            StateHasChanged();
+
+            if (respuestaHTTP.Error)
+            {
+                var mensajeError = await respuestaHTTP.ObtenerMensajeError();
+                await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await loginService.Login(respuestaHTTP.Response!);
+
+                await js.GuardarEnLocalStorage("Display", $"{userInfoDTO.UserName} [ {userInfoDTO.BD} ]");
+
+                isLogin = false;
+                navigationManager.NavigateTo("main");
+            }
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error", $"jbs.Error de procesamiento: {ex.ToString()}", SweetAlertIcon.Error);
+        }
+    }
+
+    private string GetPasswordInputType()
+    {
+        return showPassword ? "text" : "password";
+    }
+
+    private void ForgotPassword()
+    {
+        navigationManager.NavigateTo($"recuperarContrasena");
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+}
+
+@code {
+
+    //TODO
+    /*
+    * Usuario: Cambiar contraseña
+    */
 }
