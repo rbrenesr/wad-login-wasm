@@ -8,13 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Login.Client\Login.Client.csproj" />
-    <ProjectReference Include="..\Login.Shared\Login.Shared.csproj" />
   </ItemGroup>
 
 </Project>
