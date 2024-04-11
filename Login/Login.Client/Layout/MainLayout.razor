@@ -1,16 +1,35 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject NavigationManager navigationManager
+@inject IJSRuntime js
+@inject Login.Client.Services.RenovadorToken renovadorToken
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<AuthorizeView Roles="admin">
+        <NavMenu BodyContent="@Body" Rol="admin"></NavMenu>
+</AuthorizeView>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<AuthorizeView Roles="adminControl">
+        <NavMenu BodyContent="@Body" Rol="adminControl"></NavMenu>
+</AuthorizeView>
+
+@code {
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await js.InvokeVoidAsync("timerInactivo", DotNetObjectReference.Create(this));
+        renovadorToken.Iniciar();
+    }
+
+    [JSInvokable]
+    public async Task Logout()
+    {
+        var authState = await AuthenticationStateTask;
+        if (authState.User.Identity!.IsAuthenticated)
+        {
+            navigationManager.NavigateTo("logout");
+        }
+    }
+
+}
